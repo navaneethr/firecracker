@@ -4,41 +4,51 @@ import * as React from "react"
 import { Icons } from "@/components/icons"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ModelSelect } from "@/components/chat/ModelSelect"
-// Mock models from Fireworks API (keep in sync with ChatContainer)
-const models = [
-  {
-    name: "accounts/fireworks/models/qwen3-30b-a3b",
-    title: "Qwen3 30B-A3B",
-    description: "Latest Qwen3 state of the art model, 30B with 3B active parameter mode."
-  },
-  {
-    name: "accounts/fireworks/models/llama4-maverick-instruct-basic",
-    title: "Llama 4 Maverick Instruct (Basic)",
-    description: "Llama 4 collection of models are natively multimodal AI models."
-  },
-  {
-    name: "accounts/fireworks/models/deepseek-r1-0528",
-    title: "Deepseek R1 05/28",
-    description: "05/28 updated checkpoint of Deepseek R1. Improved reasoning and coding."
-  }
-]
+import axios from "axios"
+import { useGlobalContext } from "@/components/global-context"
+
 
 export function SiteHeader() {
-  const [selectedModel, setSelectedModel] = React.useState(models[0].name)
+  const { models, setModels, selectedModel, setSelectedModel } = useGlobalContext();
+
+  // Load selected model from localStorage on mount
+  React.useEffect(() => {
+    const stored = localStorage.getItem("selectedModel");
+    if (stored) setSelectedModel(stored);
+  }, [setSelectedModel]);
+
+
+  // Handler to update selected model and persist to localStorage
+  const handleModelChange = (value: string) => {
+    setSelectedModel(value);
+    if (value) localStorage.setItem("selectedModel", value);
+  };
+
+  React.useEffect(() => {
+    axios.get("https://app.fireworks.ai/api/models/mini-playground")
+      .then(res => {
+        const apiModels = Array.isArray(res.data) ? res.data : res.data.models || [];
+        setModels(apiModels);
+        // Only set selectedModel if not already set (from localStorage)
+        setSelectedModel(prev => prev || (apiModels.length > 0 ? apiModels[0].name : ""));
+      })
+      .catch(() => setModels([]));
+  }, [setModels, setSelectedModel]);
+
   return (
     <header className="bg-background sticky top-0 z-40 w-full border-b">
       <div className="container flex h-24 items-center justify-between">
         <div className="flex items-center gap-2">
           <Icons.firecracker className="h-8 w-8 text-amber-500" />
-          <span className="font-bold text-amber-500 text-base flex items-center">FireCracker</span>
+          <span className="font-bold text-amber-500 text-base items-center hidden sm:flex">FireCracker</span>
         </div>
         <div className="flex items-center gap-4">
           <div className="min-w-[200px]">
-            <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
+            <ModelSelect models={models} value={selectedModel} onChange={handleModelChange} />
           </div>
           <ThemeToggle />
         </div>
       </div>
     </header>
-  )
+  );
 }

@@ -7,34 +7,40 @@ import {
   SelectContent,
   SelectItem
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Model {
-  name: string
-  title: string
-  description: string
+  name: string;
+  title: string;
+  description: string;
 }
 
 interface ModelSelectProps {
-  models: Model[]
-  value: string
-  onChange: (value: string) => void
+  models: Model[];
+  value: string;
+  onChange: (value: string) => void;
+  loading?: boolean;
 }
 
-export function ModelSelect({ models, value, onChange }: ModelSelectProps) {
+export function ModelSelect({ models, value, onChange, loading }: ModelSelectProps) {
   return (
-    <div className="w-full flex flex-col gap-1 text-left">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-full text-left">
-          <SelectValue placeholder="Select a model" />
-        </SelectTrigger>
-        <SelectContent className="text-left">
-          {models.map((model) => (
-            <SelectItem key={model.name} value={model.name} className="text-left">
-              {model.title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="w-[200px] flex flex-col gap-1 text-left">
+      {loading || models.length === 0 ? (
+        <Skeleton className="w-full h-10 rounded-md" />
+      ) : (
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger className="w-full text-left">
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent className="text-left">
+            {models.map((model) => (
+              <SelectItem key={model.name} value={model.name} className="text-left">
+                {model.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
-  )
+  );
 }
