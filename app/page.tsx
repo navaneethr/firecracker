@@ -58,7 +58,7 @@ export default function IndexPage() {
         <div className="flex items-center gap-4 w-full">
           <div className="flex items-center gap-2">
             <Icons.firecracker className="h-8 w-8 text-amber-500" />
-            <span className="font-bold text-amber-500 text-base hidden flex items-center sm:flex">FireCracker</span>
+            <span className="font-bold text-amber-500 text-base items-center hidden sm:flex">FireCracker</span>
             <div className="flex sm:hidden w-40 my-4">
               <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
             </div>
