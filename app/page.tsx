@@ -58,7 +58,7 @@ export default function IndexPage() {
         <div className="flex items-center gap-4 w-full">
           <div className="flex items-center gap-2">
             <Icons.firecracker className="h-8 w-8 text-amber-500" />
-            <span className="font-bold text-amber-500 text-base flex items-center hidden sm:flex">FireCracker</span>
+            <span className="font-bold text-amber-500 text-base hidden flex items-center sm:flex">FireCracker</span>
             <div className="flex sm:hidden w-40 my-4">
               <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
             </div>
@@ -77,16 +77,16 @@ export default function IndexPage() {
           />
         </div>
         <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
-          <div className="w-full max-w-3xl px-4 sm:px-8 md:px-12 mb-2">
+          <div className="w-full max-w-3xl mb-2 px-4 sm:px-8 md:px-12">
             <ChatInput value={input} onChange={setInput} onSend={handleSend} loading={loading} />
           </div>
-          <div className="w-full max-w-3xl px-4 sm:px-8 md:px-12 flex flex-col items-start">
+          <div className="w-full max-w-3xl flex flex-col items-start px-4 sm:px-8 md:px-12">
             {(() => {
               const model = models.find(m => m.name === selectedModel);
               if (!model) return null;
               return (
                 <div className="w-full text-left">
-                  <div className="text-xs text-muted-foreground whitespace-nowrap overflow-x-hidden text-ellipsis px-1" style={{maxWidth: '100%'}}>{model.description}</div>
+                  <div className="text-xs text-muted-foreground px-1 whitespace-nowrap overflow-x-hidden text-ellipsis" style={{maxWidth: '100%'}}>{model.description}</div>
                 </div>
               );
             })()}
