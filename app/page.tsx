@@ -1,16 +1,95 @@
+"use client"
+import * as React from "react"
+import { ChatContainer } from "@/components/chat/ChatContainer"
+import { ModelSelect } from "@/components/chat/ModelSelect"
+import { ChatInput } from "@/components/chat/ChatInput"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Icons } from "@/components/icons"
+
+const models = [
+  {
+    name: "accounts/fireworks/models/qwen3-30b-a3b",
+    title: "Qwen3 30B-A3B",
+    description: "Latest Qwen3 state of the art model, 30B with 3B active parameter mode."
+  },
+  {
+    name: "accounts/fireworks/models/llama4-maverick-instruct-basic",
+    title: "Llama 4 Maverick Instruct (Basic)",
+    description: "Llama 4 collection of models are natively multimodal AI models."
+  },
+  {
+    name: "accounts/fireworks/models/deepseek-r1-0528",
+    title: "Deepseek R1 05/28",
+    description: "05/28 updated checkpoint of Deepseek R1. Improved reasoning and coding."
+  }
+]
+
 export default function IndexPage() {
+  const [selectedModel, setSelectedModel] = React.useState(models[0].name)
+  const [input, setInput] = React.useState("")
+  const [loading, setLoading] = React.useState(false)
+  const [messages, setMessages] = React.useState([
+    { id: "1", role: "user", content: "Hello!" },
+    { id: "2", role: "assistant", content: "Hi! How can I help you today?" },
+    { id: "3", role: "user", content: "Tell me about Fireworks API." },
+    { id: "4", role: "assistant", content: "Fireworks API provides access to state-of-the-art LLMs." }
+  ])
+
+  const handleSend = () => {
+    if (!input.trim()) return
+    setLoading(true)
+    setMessages((msgs) => [
+      ...msgs,
+      { id: String(msgs.length + 1), role: "user", content: input }
+    ])
+    setTimeout(() => {
+      setMessages((msgs) => [
+        ...msgs,
+        { id: String(msgs.length + 1), role: "assistant", content: `You said: ${input}` }
+      ])
+      setInput("")
+      setLoading(false)
+    }, 800)
+  }
+
   return (
-    <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
-      <div className="flex max-w-[980px] flex-col items-start gap-2">
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tighter md:text-4xl">
-          Beautifully designed components <br className="hidden sm:inline" />
-          built with Radix UI and Tailwind CSS.
-        </h1>
-        <p className="max-w-[700px] text-lg text-muted-foreground">
-          Accessible and customizable components that you can copy and paste
-          into your apps. Free. Open Source. And Next.js 13 Ready.
-        </p>
-      </div>
-    </section>
+    <div className="flex flex-col">
+      <nav className="w-full h-16 flex items-center justify-between px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 sticky top-0">
+        <div className="flex items-center gap-4 w-full">
+          <div className="flex items-center gap-2">
+            <Icons.firecracker className="h-8 w-8 text-amber-500" />
+            <span className="font-bold text-amber-500 text-base flex items-center">FireCracker</span>
+          </div>
+          <div className="hidden sm:block w-64 my-4">
+            <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
+          </div>
+        </div>
+        <ThemeToggle />
+      </nav>
+      <main className="flex-1 flex flex-col relative items-center">
+        <div className="flex-1 flex flex-col w-full max-w-3xl mx-4 sm:mx-8 md:mx-12 lg:mx-auto gap-4 min-h-0" style={{ paddingBottom: '160px' }}>
+          <ChatContainer
+            selectedModel={selectedModel}
+            messages={messages}
+          />
+        </div>
+        <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-2">
+          <div className="w-full max-w-3xl">
+            <ChatInput value={input} onChange={setInput} onSend={handleSend} loading={loading} />
+          </div>
+          <div className="w-full max-w-3xl flex flex-col items-start">
+            {(() => {
+              const model = models.find(m => m.name === selectedModel);
+              if (!model) return null;
+              return (
+                <div className="w-full mt-1 text-left">
+                  <div className="text-xs text-muted-foreground whitespace-nowrap overflow-x-auto">{model.description}</div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }
