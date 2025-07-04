@@ -38,6 +38,8 @@ export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps) 
               onSend();
             }
           }}
+          inputMode="text"
+          style={{ fontSize: '16px' }}
         />
         <button
           type="submit"

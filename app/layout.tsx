@@ -32,7 +32,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        </head>
         <body
           className={cn(
             "min-h-screen bg-background font-sans antialiased",
@@ -41,7 +43,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
         >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <div className="relative flex min-h-screen flex-col">
-              {/* <SiteHeader /> */}
               <div className="flex-1">{children}</div>
             </div>
           </ThemeProvider>
