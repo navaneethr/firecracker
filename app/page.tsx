@@ -58,32 +58,35 @@ export default function IndexPage() {
         <div className="flex items-center gap-4 w-full">
           <div className="flex items-center gap-2">
             <Icons.firecracker className="h-8 w-8 text-amber-500" />
-            <span className="font-bold text-amber-500 text-base flex items-center">FireCracker</span>
+            <span className="font-bold text-amber-500 text-base flex items-center hidden sm:flex">FireCracker</span>
+            <div className="flex sm:hidden w-40 my-4">
+              <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
+            </div>
           </div>
-          <div className="hidden sm:block w-64 my-4">
+          <div className="w-64 my-4 hidden sm:block">
             <ModelSelect models={models} value={selectedModel} onChange={setSelectedModel} />
           </div>
         </div>
         <ThemeToggle />
       </nav>
       <main className="flex-1 flex flex-col relative items-center">
-        <div className="flex-1 flex flex-col w-full max-w-3xl mx-4 sm:mx-8 md:mx-12 lg:mx-auto gap-4 min-h-0" style={{ paddingBottom: '160px' }}>
+        <div className="flex-1 flex flex-col w-full max-w-3xl px-4 sm:px-8 md:px-12 lg:mx-auto gap-4 min-h-0 pt-4 pb-40">
           <ChatContainer
             selectedModel={selectedModel}
             messages={messages}
           />
         </div>
-        <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-2">
-          <div className="w-full max-w-3xl">
+        <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
+          <div className="w-full max-w-3xl px-4 sm:px-8 md:px-12 mb-2">
             <ChatInput value={input} onChange={setInput} onSend={handleSend} loading={loading} />
           </div>
-          <div className="w-full max-w-3xl flex flex-col items-start">
+          <div className="w-full max-w-3xl px-4 sm:px-8 md:px-12 flex flex-col items-start">
             {(() => {
               const model = models.find(m => m.name === selectedModel);
               if (!model) return null;
               return (
-                <div className="w-full mt-1 text-left">
-                  <div className="text-xs text-muted-foreground whitespace-nowrap overflow-x-auto">{model.description}</div>
+                <div className="w-full text-left">
+                  <div className="text-xs text-muted-foreground whitespace-nowrap overflow-x-hidden text-ellipsis px-1" style={{maxWidth: '100%'}}>{model.description}</div>
                 </div>
               );
             })()}
