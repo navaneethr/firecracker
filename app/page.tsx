@@ -4,8 +4,41 @@ import { ChatContainer } from "@/components/chat/ChatContainer"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { toast } from "sonner";
 import { useGlobalContext } from "@/components/global-context"
+
 import { fetchPost } from "@/lib/fetch-utils"
 import { parseFireworksSSEChunk } from "@/lib/utils"
+
+type Message = { id: string; role: string; content: string };
+type Conversation = {
+  id: string;
+  title: string;
+  messages: Message[];
+  model: string;
+  updatedAt: number;
+};
+const LS_KEY = 'firecracker_conversations';
+const LS_LAST_ID = 'firecracker_last_conversation_id';
+
+function getConversationsFromLS(): Conversation[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+function saveConversationsToLS(convs: Conversation[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LS_KEY, JSON.stringify(convs));
+}
+function getLastConversationId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(LS_LAST_ID);
+}
+function setLastConversationId(id: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LS_LAST_ID, id);
+}
 
 // Utility to post chat messages (initial or streaming)
 async function postChatMessages({ model, messages, initial = false }: { model: string, messages: any[], initial?: boolean }) {
@@ -23,27 +56,61 @@ async function postChatMessages({ model, messages, initial = false }: { model: s
   }
 }
 
-export default function IndexPage() {
+export default function Page() {
   const { models, selectedModel } = useGlobalContext();
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  type Message = { id: string; role: string; content: string };
+  const [conversationId, setConversationId] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<Message[]>([]);
 
+  // Load last conversation on mount
   React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await postChatMessages({ model: selectedModel, messages: [], initial: true });
-        setMessages(res.data.messages || []);
-      } catch {
-        setMessages([]);
-      }
-    })();
-  }, [selectedModel]);
+    if (typeof window === 'undefined') return;
+    const conversations = getConversationsFromLS();
+    const lastId = getLastConversationId();
+    let found: Conversation | undefined = undefined;
+    if (lastId) {
+      found = conversations.find(c => c.id === lastId);
+    }
+    if (!found && conversations.length > 0) {
+      found = conversations[conversations.length - 1];
+    }
+    if (found) {
+      setConversationId(found.id);
+      setMessages(found.messages);
+    }
+  }, []);
+
+  // Save conversation to localStorage on messages/model change
+  React.useEffect(() => {
+    if (!conversationId) return;
+    const conversations = getConversationsFromLS();
+    const idx = conversations.findIndex(c => c.id === conversationId);
+    const title = messages.find(m => m.role === 'user')?.content?.slice(0, 40) || 'New Chat';
+    const updated: Conversation = {
+      id: conversationId,
+      title,
+      messages,
+      model: selectedModel,
+      updatedAt: Date.now(),
+    };
+    if (idx > -1) {
+      conversations[idx] = updated;
+    } else {
+      conversations.push(updated);
+    }
+    saveConversationsToLS(conversations);
+    setLastConversationId(conversationId);
+  }, [messages, selectedModel, conversationId]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
     setLoading(true);
+    let convId = conversationId;
+    if (!convId) {
+      convId = crypto.randomUUID();
+      setConversationId(convId);
+    }
     const newMessages = [
       ...messages,
       { id: String(messages.length + 1), role: "user", content: input }
@@ -57,28 +124,29 @@ export default function IndexPage() {
         messages: newMessages.map(({ role, content }) => ({ role, content })),
         initial: false
       });
-      console.log("Response from server:", res);
       if (!res.data) {
         setLoading(false);
         toast.error("No response from server.");
         return;
       }
       const reader = res.data.getReader();
-      console.log("Starting to read response stream...", reader);
       let assistantMessage = "";
       let buffer = "";
       let done = false;
+      let receivedAny = false;
       while (!done) {
         const { value, done: doneReading } = await reader.read();
+        console.log("Received chunk:", value, "Done:", doneReading);
         done = doneReading;
         if (value) {
           buffer += new TextDecoder().decode(value);
           const lines = buffer.split('\n');
-          buffer = lines.pop() ?? ""; // Save incomplete line for next chunk
+          buffer = lines.pop() ?? "";
           const parsed = parseFireworksSSEChunk(lines.join('\n'));
+          console.log("Parsed chunk:", parsed);
           if (parsed) {
+            receivedAny = true;
             assistantMessage += parsed;
-            console.log("Assistant message chunk:", parsed);
             const assistantId = String(newMessages.length + 1);
             setMessages((msgs) => [
               ...msgs.filter((m) => m.id !== assistantId),
@@ -87,10 +155,10 @@ export default function IndexPage() {
           }
         }
       }
-      // Handle any remaining buffer after stream ends
       if (buffer) {
         const parsed = parseFireworksSSEChunk(buffer);
         if (parsed) {
+          receivedAny = true;
           assistantMessage += parsed;
           setMessages((msgs) => [
             ...msgs.filter((m) => m.role !== "assistant" || m.id !== String(newMessages.length + 1)),
@@ -98,11 +166,17 @@ export default function IndexPage() {
           ]);
         }
       }
+      console.log("Received any:", receivedAny);
+      if (!receivedAny) {
+        toast.error("The model returned an empty response, use a different model or try again.");
+        throw new Error("Empty stream response from model");
+      }
     } catch (err) {
-      // toast already handled in util
+      // toast already handled in util or above
+      console.error("Error sending message:", err);
     }
     setLoading(false);
-  }
+  };
 
   return (
     <main className="flex-1 flex flex-col relative items-center">
