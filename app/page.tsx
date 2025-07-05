@@ -5,6 +5,7 @@ import { ChatInput } from "@/components/chat/ChatInput"
 import { toast } from "sonner";
 import { useGlobalContext } from "@/components/global-context"
 import { fetchPost } from "@/lib/fetch-utils"
+import { parseFireworksSSEChunk } from "@/lib/utils"
 
 // Utility to post chat messages (initial or streaming)
 async function postChatMessages({ model, messages, initial = false }: { model: string, messages: any[], initial?: boolean }) {
@@ -129,31 +130,4 @@ export default function IndexPage() {
       </div>
     </main>
   )
-}
-
-
-
-export function parseFireworksSSEChunk(chunk: string): string {
-  console
-  const lines = chunk
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.startsWith('data: ') && line !== 'data: [DONE]');
-
-  let result = '';
-
-  for (const line of lines) {
-    try {
-      const jsonStr = line.replace(/^data: |<think\s*\/?>/g, '');
-      const parsed = JSON.parse(jsonStr);
-      const deltaContent = parsed?.choices?.[0]?.delta?.content;
-      if (deltaContent) {
-        result += deltaContent;
-      }
-    } catch {
-      // Ignore malformed JSON lines
-    }
-  }
-
-  return result;
 }
