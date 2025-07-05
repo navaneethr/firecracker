@@ -13,8 +13,8 @@ export function ChatContainer({ selectedModel, messages, modelSelectSection, chi
   children?: React.ReactNode
 }) {
   return (
-    <div className="w-full max-w-3xl flex flex-col gap-0 mt-2 mb-0 relative flex-1 overflow-hidden">
-      <div className="mt-6 flex-1 min-h-0 flex flex-col">
+    <div className="w-full max-w-5xl flex flex-col gap-0 mb-0 relative flex-1 overflow-hidden">
+      <div className="mt-2 flex-1 min-h-0 flex flex-col">
         <ChatMessages messages={messages} />
       </div>
       {modelSelectSection && (

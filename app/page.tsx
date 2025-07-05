@@ -105,17 +105,17 @@ export default function IndexPage() {
 
   return (
     <main className="flex-1 flex flex-col relative items-center">
-      <div className="flex-1 flex flex-col w-full max-w-3xl px-4 sm:px-8 md:px-12 lg:mx-auto gap-4 min-h-0 pt-4 pb-40">
+      <div className="flex-1 flex flex-col w-full max-w-5xl px-4 sm:px-8 md:px-12 lg:mx-auto gap-4 min-h-0 pt-4 pb-40">
         <ChatContainer
           selectedModel={selectedModel}
           messages={messages}
         />
       </div>
       <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
-        <div className="w-full max-w-3xl mb-2 px-4 sm:px-8 md:px-12">
+        <div className="w-full max-w-5xl mb-2 px-4 sm:px-8 md:px-12">
           <ChatInput value={input} onChange={setInput} onSend={handleSend} loading={loading} />
         </div>
-        <div className="w-full max-w-3xl flex flex-col items-start px-4 sm:px-8 md:px-12">
+        <div className="w-full max-w-5xl flex flex-col items-start px-4 sm:px-8 md:px-12">
           {(() => {
             const model = models.find(m => m.name === selectedModel);
             if (!model) return null;
@@ -144,7 +144,7 @@ export function parseFireworksSSEChunk(chunk: string): string {
 
   for (const line of lines) {
     try {
-      const jsonStr = line.replace('data: ', '');
+      const jsonStr = line.replace(/^data: |<think\s*\/?>/g, '');
       const parsed = JSON.parse(jsonStr);
       const deltaContent = parsed?.choices?.[0]?.delta?.content;
       if (deltaContent) {
