@@ -1,5 +1,9 @@
 "use client"
 import * as React from "react"
+import MarkdownMessage from "./MarkdownMessage"
+import { CopyIcon } from "@/components/icons/CopyIcon"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface Message {
   id: string
@@ -21,6 +25,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
     }
   }, [messages]);
 
+
   return (
     <div ref={containerRef} className="flex flex-col gap-4 overflow-y-auto flex-1 scrollbar-hide relative">
       {messages.map((msg) => (
@@ -33,13 +38,41 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
               {msg.content}
             </div>
           ) : (
-            <div className="rounded-lg px-4 py-2 max-w-[70%] text-sm border border-border text-foreground whitespace-pre-line">
-              {msg.content}
-            </div>
+            <AssistantMessageWithCopy content={msg.content} />
           )}
         </div>
       ))}
       <div ref={bottomRef} />
+    </div>
+  );
+}
+
+function AssistantMessageWithCopy({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+  return (
+    <div className="relative group w-full flex">
+      <div className="rounded-lg px-4 py-2 text-sm border border-border text-foreground whitespace-pre-line prose prose-neutral dark:prose-invert" style={{ maxWidth: '70%', width: 'fit-content', minWidth: 0 }}>
+        <MarkdownMessage content={content} />
+      </div>
+      <button
+        className="ml-2 self-center opacity-60 hover:opacity-100 transition-opacity z-10 bg-background p-1 rounded"
+        onClick={handleCopy}
+        aria-label="Copy response"
+        tabIndex={0}
+        type="button"
+      >
+        <CopyIcon copied={copied} />
+      </button>
     </div>
   );
 }

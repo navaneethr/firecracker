@@ -16,7 +16,6 @@
   "dependencies": {
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
-    "axios": "^1.10.0",
     "class-variance-authority": "^0.4.0",
     "clsx": "^1.2.1",
     "lucide-react": "0.105.0-alpha.4",
@@ -24,7 +23,11 @@
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "remark-gfm": "^4.0.1",
     "sharp": "^0.31.3",
+    "sonner": "^2.0.6",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6"
   },

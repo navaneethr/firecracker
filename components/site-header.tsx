@@ -4,7 +4,7 @@ import * as React from "react"
 import { Icons } from "@/components/icons"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ModelSelect } from "@/components/chat/ModelSelect"
-import axios from "axios"
+import { fetchGet } from "@/lib/fetch-utils"
 import { useGlobalContext } from "@/components/global-context"
 
 
@@ -25,11 +25,10 @@ export function SiteHeader() {
   };
 
   React.useEffect(() => {
-    axios.get("https://app.fireworks.ai/api/models/mini-playground")
-      .then(res => {
-        const apiModels = Array.isArray(res.data) ? res.data : res.data.models || [];
+    fetchGet("/api/models")
+      .then(data => {
+        const apiModels = Array.isArray(data) ? data : data.models || [];
         setModels(apiModels);
-        // Only set selectedModel if not already set (from localStorage)
         setSelectedModel(prev => prev || (apiModels.length > 0 ? apiModels[0].name : ""));
       })
       .catch(() => setModels([]));

@@ -1,16 +1,26 @@
 "use client"
 import * as React from "react"
-import axios from "axios"
 import { ChatContainer } from "@/components/chat/ChatContainer"
-import { ModelSelect } from "@/components/chat/ModelSelect"
 import { ChatInput } from "@/components/chat/ChatInput"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Icons } from "@/components/icons"
-
-
-
-
+import { toast } from "sonner";
 import { useGlobalContext } from "@/components/global-context"
+import { fetchPost } from "@/lib/fetch-utils"
+
+// Utility to post chat messages (initial or streaming)
+async function postChatMessages({ model, messages, initial = false }: { model: string, messages: any[], initial?: boolean }) {
+  try {
+    const res = await fetchPost('/api/chat', { model, messages, initial }, { raw: !initial });
+    if (initial) {
+      return { data: res };
+    } else {
+      if (!res.body) throw new Error('No response body');
+      return { data: res.body };
+    }
+  } catch (err) {
+    toast.error(initial ? 'Failed to load initial chat.' : 'Failed to send message. Please try again.');
+    throw err;
+  }
+}
 
 export default function IndexPage() {
   const { models, selectedModel } = useGlobalContext();
@@ -20,28 +30,77 @@ export default function IndexPage() {
   const [messages, setMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
-    axios.get('/api/chat')
-      .then(res => {
-        setMessages(res.data.messages || [])
-      })
-      .catch(() => setMessages([]))
-  }, [])
+    (async () => {
+      try {
+        const res = await postChatMessages({ model: selectedModel, messages: [], initial: true });
+        setMessages(res.data.messages || []);
+      } catch {
+        setMessages([]);
+      }
+    })();
+  }, [selectedModel]);
 
-  const handleSend = () => {
-    if (!input.trim()) return
-    setLoading(true)
-    setMessages((msgs) => [
-      ...msgs,
-      { id: String(msgs.length + 1), role: "user", content: input }
-    ])
-    setTimeout(() => {
-      setMessages((msgs) => [
-        ...msgs,
-        { id: String(msgs.length + 1), role: "assistant", content: `You said: ${input}` }
-      ])
-      setInput("")
-      setLoading(false)
-    }, 800)
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    const newMessages = [
+      ...messages,
+      { id: String(messages.length + 1), role: "user", content: input }
+    ];
+    setMessages(newMessages);
+    setInput("");
+
+    try {
+      const res = await postChatMessages({
+        model: selectedModel,
+        messages: newMessages.map(({ role, content }) => ({ role, content })),
+        initial: false
+      });
+      console.log("Response from server:", res);
+      if (!res.data) {
+        setLoading(false);
+        toast.error("No response from server.");
+        return;
+      }
+      const reader = res.data.getReader();
+      console.log("Starting to read response stream...", reader);
+      let assistantMessage = "";
+      let buffer = "";
+      let done = false;
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          buffer += new TextDecoder().decode(value);
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? ""; // Save incomplete line for next chunk
+          const parsed = parseFireworksSSEChunk(lines.join('\n'));
+          if (parsed) {
+            assistantMessage += parsed;
+            console.log("Assistant message chunk:", parsed);
+            const assistantId = String(newMessages.length + 1);
+            setMessages((msgs) => [
+              ...msgs.filter((m) => m.id !== assistantId),
+              { id: assistantId, role: "assistant", content: assistantMessage }
+            ]);
+          }
+        }
+      }
+      // Handle any remaining buffer after stream ends
+      if (buffer) {
+        const parsed = parseFireworksSSEChunk(buffer);
+        if (parsed) {
+          assistantMessage += parsed;
+          setMessages((msgs) => [
+            ...msgs.filter((m) => m.role !== "assistant" || m.id !== String(newMessages.length + 1)),
+            { id: String(newMessages.length + 1), role: "assistant", content: assistantMessage }
+          ]);
+        }
+      }
+    } catch (err) {
+      // toast already handled in util
+    }
+    setLoading(false);
   }
 
   return (
@@ -70,4 +129,31 @@ export default function IndexPage() {
       </div>
     </main>
   )
+}
+
+
+
+export function parseFireworksSSEChunk(chunk: string): string {
+  console
+  const lines = chunk
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.startsWith('data: ') && line !== 'data: [DONE]');
+
+  let result = '';
+
+  for (const line of lines) {
+    try {
+      const jsonStr = line.replace('data: ', '');
+      const parsed = JSON.parse(jsonStr);
+      const deltaContent = parsed?.choices?.[0]?.delta?.content;
+      if (deltaContent) {
+        result += deltaContent;
+      }
+    } catch {
+      // Ignore malformed JSON lines
+    }
+  }
+
+  return result;
 }
