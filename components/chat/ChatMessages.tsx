@@ -34,7 +34,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
         >
           {msg.role === "user" ? (
-            <div className="rounded-lg px-4 py-2 max-w-[70%] text-sm bg-primary text-primary-foreground whitespace-pre-line shadow-sm leading-loose">
+            <div className="rounded-lg px-4 py-2 max-w-[70%] text-sm bg-primary text-primary-foreground whitespace-pre-line shadow-sm">
               {msg.content}
             </div>
           ) : (
@@ -62,7 +62,8 @@ function AssistantMessageWithCopy({ content }: { content: string }) {
   return (
     <div className="relative group w-full flex">
       <div
-        className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert max-w-[70%] w-fit min-w-0 leading-loose"
+        className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert w-full sm:max-w-[70%] sm:w-fit min-w-0 leading-loose overflow-x-auto"
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <MarkdownMessage content={content} />
       </div>

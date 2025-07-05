@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.FIREWORKS_API_KEY;
   if (initial) {
     // Return dummy messages for initial load
-    return NextResponse.json({ messages });
+    return NextResponse.json({ messages: conversation?.length ? conversation : messages });
   }
   if (!apiKey) {
     return new Response('Missing Fireworks API key', { status: 500 });
