@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useGlobalContext } from "@/components/global-context"
 
 import { fetchPost } from "@/lib/fetch-utils"
-import { parseFireworksSSEChunk } from "@/lib/utils"
+import { createThinkStripper, parseFireworksSSEChunk } from "@/lib/utils"
 
 type Message = { id: string; role: string; content: string };
 type Conversation = {
@@ -40,10 +40,10 @@ function setLastConversationId(id: string) {
   localStorage.setItem(LS_LAST_ID, id);
 }
 
-// Utility to post chat messages (initial or streaming)
-async function postChatMessages({ model, messages, initial = false }: { model: string, messages: any[], initial?: boolean }) {
+// Utility to post chat messages (initial or streaming), supports abort
+async function postChatMessages({ model, messages, initial = false, signal }: { model: string, messages: any[], initial?: boolean, signal?: AbortSignal }) {
   try {
-    const res = await fetchPost('/api/chat', { model, messages, initial }, { raw: !initial });
+    const res = await fetchPost('/api/chat', { model, messages, initial }, { raw: !initial, signal });
     if (initial) {
       return { data: res };
     } else {
@@ -56,12 +56,15 @@ async function postChatMessages({ model, messages, initial = false }: { model: s
   }
 }
 
+const stripThinkTags = createThinkStripper();
+
 export default function Page() {
   const { models, selectedModel } = useGlobalContext();
-  const [input, setInput] = React.useState("");
+  // Remove input state from parent, move to ChatInput
   const [loading, setLoading] = React.useState(false);
   const [conversationId, setConversationId] = React.useState<string | null>(null);
   const [messages, setMessages] = React.useState<Message[]>([]);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Load last conversation on mount
   React.useEffect(() => {
@@ -103,7 +106,7 @@ export default function Page() {
     setLastConversationId(conversationId);
   }, [messages, selectedModel, conversationId]);
 
-  const handleSend = async () => {
+  const handleSend = async (input: string) => {
     if (!input.trim()) return;
     setLoading(true);
     let convId = conversationId;
@@ -116,13 +119,16 @@ export default function Page() {
       { id: String(messages.length + 1), role: "user", content: input }
     ];
     setMessages(newMessages);
-    setInput("");
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
       const res = await postChatMessages({
         model: selectedModel,
         messages: newMessages.map(({ role, content }) => ({ role, content })),
-        initial: false
+        initial: false,
+        signal: abortController.signal
       });
       if (!res.data) {
         setLoading(false);
@@ -134,23 +140,34 @@ export default function Page() {
       let buffer = "";
       let done = false;
       let receivedAny = false;
+      const assistantId = String(newMessages.length + 1);
+      /* 
+        'data: {"choices":[{"delta":{"conte'
+        'nt":"**Why I\'m open-source:**"}}]}\n'
+        'data: {"choices":[{"delta":{"con'
+        'tent":"\\n\\n"}}]}\n'
+        'data: {"choices":[{"delta":{"cont'
+        'ent":"I\'m a variant of the transformer "}}]}\n'
+        'data: {"choices":[{"delta":{"conte'
+        'nt":"architecture."}}]}\n'
+        'data: [DONE]\n'
+      */
       while (!done) {
         const { value, done: doneReading } = await reader.read();
-        console.log("Received chunk:", value, "Done:", doneReading);
         done = doneReading;
         if (value) {
           buffer += new TextDecoder().decode(value);
           const lines = buffer.split('\n');
           buffer = lines.pop() ?? "";
+          console.log("Received chunk:", lines);
           const parsed = parseFireworksSSEChunk(lines.join('\n'));
-          console.log("Parsed chunk:", parsed);
           if (parsed) {
             receivedAny = true;
-            assistantMessage += parsed;
-            const assistantId = String(newMessages.length + 1);
+            const clean = stripThinkTags(parsed);
+            assistantMessage += clean;
             setMessages((msgs) => [
-              ...msgs.filter((m) => m.id !== assistantId),
-              { id: assistantId, role: "assistant", content: assistantMessage }
+              ...msgs.filter((m) => m.id !== String(assistantId)),
+              { id: String(assistantId), role: "assistant", content: assistantMessage }
             ]);
           }
         }
@@ -159,23 +176,36 @@ export default function Page() {
         const parsed = parseFireworksSSEChunk(buffer);
         if (parsed) {
           receivedAny = true;
+          const clean = stripThinkTags(parsed);
           assistantMessage += parsed;
           setMessages((msgs) => [
-            ...msgs.filter((m) => m.role !== "assistant" || m.id !== String(newMessages.length + 1)),
-            { id: String(newMessages.length + 1), role: "assistant", content: assistantMessage }
+            ...msgs.filter((m) => m.role !== "assistant" || m.id !== String(assistantId)),
+            { id: String(assistantId), role: "assistant", content: assistantMessage }
           ]);
         }
       }
-      console.log("Received any:", receivedAny);
       if (!receivedAny) {
         toast.error("The model returned an empty response, use a different model or try again.");
         throw new Error("Empty stream response from model");
       }
     } catch (err) {
-      // toast already handled in util or above
-      console.error("Error sending message:", err);
+      if ((err as any)?.name === 'AbortError') {
+        toast.info('Request stopped.');
+      } else {
+        // toast already handled in util or above
+        console.error("Error sending message:", err);
+      }
+    } finally {
+      abortControllerRef.current = null;
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
   };
 
   return (
@@ -188,7 +218,7 @@ export default function Page() {
       </div>
       <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
         <div className="w-full max-w-5xl mb-2 px-4 sm:px-8 md:px-12">
-          <ChatInput value={input} onChange={setInput} onSend={handleSend} loading={loading} />
+        <ChatInput onSend={handleSend} loading={loading} onStop={handleStop} />
         </div>
         <div className="w-full max-w-5xl flex flex-col items-start px-4 sm:px-8 md:px-12">
           {(() => {
