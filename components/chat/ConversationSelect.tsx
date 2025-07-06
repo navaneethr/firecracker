@@ -1,10 +1,30 @@
 "use client"
-import * as React from "react"
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
-import { Conversation } from "@/types/conversation";
 
-export function ConversationSelect({ value, onChange, conversations }: { value: string, onChange: (id: string) => void, conversations: Conversation[] }) {
-  const hasConversations = conversations.length > 0;
+import * as React from "react"
+
+import { Conversation } from "@/types/conversation"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+export interface ConversationSelectProps {
+  value: string
+  onChange: (id: string) => void
+  conversations: Conversation[]
+  onDelete?: (id: string) => void
+}
+
+export function ConversationSelect({
+  value,
+  onChange,
+  conversations,
+  onDelete,
+}: ConversationSelectProps) {
+  const hasConversations = conversations.length > 0
   return (
     <Select
       value={hasConversations ? value : undefined}
@@ -12,13 +32,20 @@ export function ConversationSelect({ value, onChange, conversations }: { value: 
       disabled={!hasConversations}
     >
       <SelectTrigger className="w-full">
-        <SelectValue placeholder={hasConversations ? "Select Conversation" : "No conversations"} />
+        <SelectValue
+          placeholder={
+            hasConversations ? "Select Conversation" : "No conversations"
+          }
+        />
       </SelectTrigger>
       <SelectContent>
-        {hasConversations && conversations.map((conv) => (
-          <SelectItem key={conv.id} value={conv.id}>{conv.title}</SelectItem>
-        ))}
+        {hasConversations &&
+          conversations.map((conv) => (
+            <SelectItem key={conv.id} value={conv.id}>
+              <span className="truncate flex-1 min-w-0">{conv.title}</span>
+            </SelectItem>
+          ))}
       </SelectContent>
     </Select>
-  );
+  )
 }
