@@ -98,7 +98,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-4">
           <div className="flex items-center">
             <FilePlus2Icon
-              className="w-5 h-5 min-w-[40px] h-10 cursor-pointer text-muted-foreground hover:text-primary transition-colors"
+              className="w-5 h-5 min-w-[40px] cursor-pointer text-muted-foreground hover:text-primary transition-colors"
               title="New Conversation"
               onClick={handleNewConversation}
             />
