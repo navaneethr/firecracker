@@ -87,8 +87,8 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="bg-background sticky top-0 z-40 w-full border-b">
-      <div className="container flex h-14 items-center justify-between">
+    <header className="bg-background sticky top-0 z-40 w-full border-b overflow-x-auto scrollbar-thin scrollbar-thumb-muted/60 scrollbar-track-transparent">
+      <div className="container flex h-14 items-center justify-between min-w-[360px]">
         <div className="flex items-center gap-2">
           <Icons.firecracker className="h-8 w-8 text-amber-500" />
           <span className="font-bold text-amber-500 text-base items-center hidden sm:flex">
@@ -102,7 +102,7 @@ export function SiteHeader() {
               title="New Conversation"
               onClick={handleNewConversation}
             />
-            <div className="min-w-[200px]">
+            <div className="min-w-[100px] w-[100px] sm:min-w-[200px] sm:w-auto">
               <ConversationSelect
                 value={selectedConversationId}
                 onChange={handleConversationChange}
@@ -110,7 +110,7 @@ export function SiteHeader() {
               />
             </div>
             <Trash2Icon
-              className="w-5 h-5 ml-2 cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
+              className="w-5 h-5 ml-2 mr-2 cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
               title="Delete Conversation"
               onClick={handleDeleteConversation}
               aria-disabled={!selectedConversationId}
@@ -119,15 +119,15 @@ export function SiteHeader() {
                 pointerEvents: selectedConversationId ? "auto" : "none",
               }}
             />
+            <div className="min-w-[100px] w-[100px] sm:min-w-[200px] sm:w-auto mr-2">
+              <ModelSelect
+                models={models}
+                value={selectedModel}
+                onChange={handleModelChange}
+              />
+            </div>
+            <ThemeToggle />
           </div>
-          <div className="min-w-[200px]">
-            <ModelSelect
-              models={models}
-              value={selectedModel}
-              onChange={handleModelChange}
-            />
-          </div>
-          <ThemeToggle />
         </div>
       </div>
     </header>

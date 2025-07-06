@@ -26,25 +26,16 @@ export function ConversationSelect({
 }: ConversationSelectProps) {
   const hasConversations = conversations.length > 0
   return (
-    <Select
-      value={hasConversations ? value : undefined}
-      onValueChange={onChange}
-      disabled={!hasConversations}
-    >
+    <Select value={value} onValueChange={onChange} disabled={!hasConversations}>
       <SelectTrigger className="w-full">
-        <SelectValue
-          placeholder={
-            hasConversations ? "Select Conversation" : "No conversations"
-          }
-        />
+        <SelectValue placeholder="Select Conversation" />
       </SelectTrigger>
       <SelectContent>
-        {hasConversations &&
-          conversations.map((conv) => (
-            <SelectItem key={conv.id} value={conv.id}>
-              <span className="truncate flex-1 min-w-0">{conv.title}</span>
-            </SelectItem>
-          ))}
+        {conversations.map((conv) => (
+          <SelectItem key={conv.id} value={conv.id}>
+            <span className="truncate flex-1 min-w-0">{conv.title}</span>
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )
