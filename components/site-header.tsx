@@ -9,30 +9,13 @@ import { useGlobalContext } from "@/components/global-context"
 
 
 export function SiteHeader() {
-  const { models, setModels, selectedModel, setSelectedModel } = useGlobalContext();
-
-  // Load selected model from localStorage on mount
-  React.useEffect(() => {
-    const stored = localStorage.getItem("selectedModel");
-    if (stored) setSelectedModel(stored);
-  }, [setSelectedModel]);
-
+  const { models, selectedModel, setSelectedModel } = useGlobalContext();
 
   // Handler to update selected model and persist to localStorage
   const handleModelChange = (value: string) => {
     setSelectedModel(value);
     if (value) localStorage.setItem("selectedModel", value);
   };
-
-  React.useEffect(() => {
-    fetchGet("/api/models")
-      .then(data => {
-        const apiModels = Array.isArray(data) ? data : data.models || [];
-        setModels(apiModels);
-        setSelectedModel(prev => prev || (apiModels.length > 0 ? apiModels[0].name : ""));
-      })
-      .catch(() => setModels([]));
-  }, [setModels, setSelectedModel]);
 
   return (
     <header className="bg-background sticky top-0 z-40 w-full border-b">
