@@ -1,4 +1,4 @@
-import { Conversation } from "../types"
+import { Conversation } from "@/types/conversation"
 
 export function useLocalStorage() {
   const LS_KEY = "firecracker_conversations"
