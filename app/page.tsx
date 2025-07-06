@@ -3,23 +3,16 @@
 import * as React from "react"
 import { toast } from "sonner"
 
+import { Conversation, Message } from "@/types/conversation"
 import { postChatMessages } from "@/lib/fetch-utils"
-import { Message as BaseMessage, Conversation } from "@/lib/types"
 import { createThinkStripper, parseFireworksSSEChunk } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { ChatInput } from "@/components/chat/ChatInput"
+import { ChatMessages } from "@/components/chat/ChatMessages"
 import { useGlobalContext } from "@/components/global-context"
 
 const stripThinkTags = createThinkStripper()
-
-type Message = BaseMessage & {
-  stats?: {
-    responseTime: number
-    timeToFirstToken: number
-    tokensPerSecond: number
-  }
-}
 
 export default function Page() {
   const {
@@ -256,7 +249,7 @@ export default function Page() {
   return (
     <main className="flex-1 flex flex-col relative items-center">
       <div className="flex-1 flex flex-col w-full max-w-5xl px-4 sm:px-8 md:px-12 lg:mx-auto gap-4 min-h-0 pt-4 pb-40">
-        <ChatContainer messages={messages} loading={loading} />
+        <ChatMessages messages={messages} loading={loading} />
       </div>
       <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
         <div className="w-full max-w-5xl mb-2 px-4 sm:px-8 md:px-12">
