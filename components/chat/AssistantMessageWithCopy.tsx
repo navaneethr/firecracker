@@ -35,9 +35,15 @@ export function AssistantMessageWithCopy({
           <MarkdownMessage content={content} />
           {stats && !loading && (
             <div className="mt-1 text-[10px] italic text-muted-foreground flex flex-row gap-2">
-              <span>Response Time - {stats.responseTime.toFixed(0)}ms</span>
-              <span>• 1st - {stats.timeToFirstToken.toFixed(0)}ms</span>
-              <span>• {stats.tokensPerSecond.toFixed(0)} tokens/s</span>
+              <span title="Response Time (ms)">
+                RT - {stats.responseTime.toFixed(0)}ms
+              </span>
+              <span title="Time to First Token (ms)">
+                • 1st - {stats.timeToFirstToken.toFixed(0)}ms
+              </span>
+              <span title="Tokens/Second">
+                • {stats.tokensPerSecond.toFixed(0)} Tks/s
+              </span>
             </div>
           )}
           {loading && (
