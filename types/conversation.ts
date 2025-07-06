@@ -24,3 +24,19 @@ export interface AssistantMessageWithCopyProps {
   }
   loading?: boolean
 }
+
+export interface ChatMessagesProps {
+  messages: Message[]
+  loading?: boolean
+}
+export interface ChatInputProps {
+  onSend: (input: string) => void
+  loading?: boolean
+  onStop?: () => void
+}
+
+export interface ConversationSelectProps {
+  value: string
+  onChange: (id: string) => void
+  conversations: Conversation[]
+}

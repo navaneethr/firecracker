@@ -2,11 +2,10 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Copy, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { AssistantMessageWithCopyProps } from "@/types/conversation"
-import { CopyIcon } from "@/components/icons/CopyIcon"
 
 import MarkdownMessage from "./MarkdownMessage"
 
@@ -30,7 +29,7 @@ export function AssistantMessageWithCopy({
     <div className="relative group w-full flex flex-col">
       <div className="flex flex-row items-center w-full">
         <div
-          className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert w-full sm:w-fit min-w-[50%] min-w-0 min-h-[40px] leading-loose overflow-x-auto"
+          className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert w-full sm:max-w-[80%] sm:w-fit min-w-[50%] min-w-0 min-h-[40px] leading-loose overflow-x-auto"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <MarkdownMessage content={content} />
@@ -48,13 +47,25 @@ export function AssistantMessageWithCopy({
           )}
         </div>
         <button
-          className="ml-2 opacity-60 hover:opacity-100 transition-opacity z-10 bg-background p-1 rounded"
+          className={
+            "ml-2 transition-opacity z-10 bg-background p-1 rounded" +
+            (loading ? " opacity-50 cursor-not-allowed" : " hover:opacity-100")
+          }
           onClick={handleCopy}
           aria-label="Copy response"
           tabIndex={0}
           type="button"
+          disabled={loading}
         >
-          <CopyIcon copied={copied} />
+          <Copy
+            className={
+              (copied
+                ? "text-amber-500"
+                : loading
+                ? "text-muted-foreground"
+                : "text-amber-400") + " w-5 h-5"
+            }
+          />
         </button>
       </div>
     </div>

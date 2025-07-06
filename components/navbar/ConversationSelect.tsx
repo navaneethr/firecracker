@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { Conversation } from "@/types/conversation"
+import { ConversationSelectProps } from "@/types/conversation"
 import {
   Select,
   SelectContent,
@@ -11,18 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export interface ConversationSelectProps {
-  value: string
-  onChange: (id: string) => void
-  conversations: Conversation[]
-  onDelete?: (id: string) => void
-}
-
 export function ConversationSelect({
   value,
   onChange,
   conversations,
-  onDelete,
 }: ConversationSelectProps) {
   const hasConversations = conversations.length > 0
   return (

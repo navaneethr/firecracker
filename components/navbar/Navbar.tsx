@@ -1,16 +1,15 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { useGlobalContext } from "@/context/GlobalProvider"
 import { FilePlus2Icon, Trash2Icon } from "lucide-react"
 
-import { ConversationSelect } from "@/components/chat/ConversationSelect"
-import { ModelSelect } from "@/components/chat/ModelSelect"
-import { useGlobalContext } from "@/components/global-context"
 import { Icons } from "@/components/icons"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ConversationSelect } from "@/components/navbar/ConversationSelect"
+import { ModelSelect } from "@/components/navbar/ModelSelect"
+import { ThemeToggle } from "@/components/navbar/ThemeToggle"
 
-export function SiteHeader() {
+export function Navbar() {
   const {
     models,
     selectedModel,

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { ModelSelectProps } from "@/types/nav"
 import {
   Select,
   SelectContent,
@@ -10,19 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-
-interface Model {
-  name: string
-  title: string
-  description: string
-}
-
-interface ModelSelectProps {
-  models: Model[]
-  value: string
-  onChange: (value: string) => void
-  loading?: boolean
-}
 
 export function ModelSelect({
   models,

@@ -4,8 +4,8 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import type { Conversation } from "@/types/conversation"
-import { fetchGet } from "@/lib/fetch-utils"
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage"
+import { fetchGet } from "@/lib/utils/fetch-utils"
 
 export type Model = {
   name: string
@@ -71,7 +71,6 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Fetch models from API on mount
   // This will also set the first model as selected if none is set
   useEffect(() => {
     fetchGet("/api/models")
@@ -85,6 +84,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
       .catch(() => setModels([]))
   }, [setModels, setSelectedModel])
 
+  // function to save selected model to state and localStorage
   const saveModel = (model: string) => {
     setSelectedModel(model)
     if (model) {

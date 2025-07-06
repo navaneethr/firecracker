@@ -1,16 +1,15 @@
 "use client"
 
 import * as React from "react"
+import { useGlobalContext } from "@/context/GlobalProvider"
 import { toast } from "sonner"
 
 import { Conversation, Message } from "@/types/conversation"
-import { postChatMessages } from "@/lib/fetch-utils"
-import { createThinkStripper, parseFireworksSSEChunk } from "@/lib/utils"
+import { postChatMessages } from "@/lib/utils/fetch-utils"
+import { createThinkStripper, parseFireworksSSEChunk } from "@/lib/utils/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ChatContainer } from "@/components/chat/ChatContainer"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { ChatMessages } from "@/components/chat/ChatMessages"
-import { useGlobalContext } from "@/components/global-context"
 
 const stripThinkTags = createThinkStripper()
 

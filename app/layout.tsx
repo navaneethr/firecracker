@@ -1,13 +1,13 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
+import { GlobalProvider } from "@/context/GlobalProvider"
+import { ThemeProvider } from "@/context/ThemeProvider"
 import { Toaster } from "sonner"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
-import { cn } from "@/lib/utils"
-import { SiteHeader } from "@/components/site-header"
-import { ThemeProvider } from "@/components/theme-provider"
-import { GlobalProvider } from "@/components/global-context"
+import { cn } from "@/lib/utils/utils"
+import { Navbar } from "@/components/navbar/Navbar"
 
 export const metadata: Metadata = {
   title: {
@@ -35,7 +35,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+          />
         </head>
         <body
           className={cn(
@@ -46,7 +49,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <GlobalProvider>
               <div className="relative flex min-h-screen flex-col">
-                <SiteHeader />
+                <Navbar />
                 <Toaster />
                 <div className="flex-1">{children}</div>
               </div>

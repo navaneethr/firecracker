@@ -1,20 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
-import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
-import { Message } from "@/types/conversation"
+import { ChatMessagesProps, Message } from "@/types/conversation"
 import { AssistantMessageWithCopy } from "@/components/chat/AssistantMessageWithCopy"
 
-interface ChatMessagesProps {
-  messages: Message[]
-  loading?: boolean
-}
-
 export function ChatMessages({ messages, loading = false }: ChatMessagesProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null)
   const bottomRef = React.useRef<HTMLDivElement>(null)
   // Scroll to bottom when messages or loading change
   React.useEffect(() => {
@@ -24,10 +15,7 @@ export function ChatMessages({ messages, loading = false }: ChatMessagesProps) {
   }, [messages, loading])
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col gap-4 overflow-y-auto flex-1 scrollbar-hide relative"
-    >
+    <div className="flex flex-col gap-4 overflow-y-auto flex-1 scrollbar-hide relative">
       {messages.map((msg, i) => (
         <div
           key={msg.id}
