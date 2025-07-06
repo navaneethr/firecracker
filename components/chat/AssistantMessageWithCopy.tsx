@@ -29,7 +29,7 @@ export function AssistantMessageWithCopy({
     <div className="relative group w-full flex flex-col">
       <div className="flex flex-row items-center w-full">
         <div
-          className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert w-full sm:max-w-[80%] sm:w-fit min-w-[50%] min-w-0 min-h-[40px] leading-loose overflow-x-auto"
+          className="rounded-lg px-4 py-2 text-sm border border-border text-foreground prose prose-neutral dark:prose-invert w-full sm:max-w-[80%] sm:w-fit min-w-[50%] min-h-[40px] leading-loose overflow-x-auto"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <MarkdownMessage content={content} />
