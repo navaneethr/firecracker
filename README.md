@@ -20,6 +20,14 @@ FireCracker is a modern, responsive ChatGPT-style web app built with React, Next
 - Dark/Light modes, defaults to Dark
 - Modern, modular codebase
 
+## Potential Improvements
+
+- Add User Authentication
+- Use User Information to store conversations in a database instead of local storage
+- Get the Model from the Conversation instead of the global state
+- Memoization of components & parsing functions to improve performance
+- Allow User to Add Custom Names to Conversations
+
 ## Getting Started
 
 Clone the repo and install dependencies:
