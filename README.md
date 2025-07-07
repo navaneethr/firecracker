@@ -10,11 +10,12 @@ FireCracker is a modern, responsive ChatGPT-style web app built with React, Next
 - Conversation and Chat Model selection
 - New Conversation
 - Delete Conversation
-- Markdown Response Rendering - Handles markdown, code blocks, tables, anchors and images
+- Abort Ongoing Requests
 - Think Tag Stripping - Automatically removes think tags from responses
+- Real-time streaming with stats (response time, tokens/sec) & Loading indicators
+- Markdown Response Rendering - Handles markdown, code blocks, tables, anchors and images
 - Fireworks API integration for fast, scalable LLM chat
 - Conversation management with local storage
-- Real-time streaming with stats (response time, tokens/sec) & Loading indicators
 - Copy-to-clipboard for assistant messages
 - Dark/Light modes, defaults to Dark
 - Modern, modular codebase

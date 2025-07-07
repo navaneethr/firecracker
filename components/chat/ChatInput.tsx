@@ -30,7 +30,7 @@ export function ChatInput({ onSend, loading, onStop }: ChatInputProps) {
         <textarea
           ref={textareaRef}
           className="w-full resize-none rounded-md border px-3 py-2 pr-12 text-sm font-sans placeholder:text-sm placeholder:font-sans focus:outline-none focus:ring-2 focus:ring-amber-500 h-28 overflow-auto"
-          placeholder="Type a message and press Enter or click the arrow..."
+          placeholder="Ask me anything... (press Enter to send, or click the arrow)"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
