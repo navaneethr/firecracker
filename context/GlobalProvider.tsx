@@ -55,6 +55,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (typeof window === "undefined") return
     const stored = getModelFromLS()
+    console.log("🔍 Loading from localStorage:", stored)
     if (stored) setSelectedModel(stored)
     const conversations = getConversationsFromLS()
     const lastId = getLastConversationId()
@@ -77,9 +78,10 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
       .then((data) => {
         const apiModels = Array.isArray(data) ? data : data.models || []
         setModels(apiModels)
-        setSelectedModel(
-          (prev) => prev || (apiModels.length > 0 ? apiModels[0].name : "")
-        )
+        setSelectedModel((prev) => {
+          const result = prev || (apiModels.length > 0 ? apiModels[0].name : "")
+          return result
+        })
       })
       .catch(() => setModels([]))
   }, [setModels, setSelectedModel])

@@ -27,12 +27,12 @@ export function useLocalStorage() {
   }
   function saveModelToLS(model: string) {
     if (typeof window === "undefined") return
-    localStorage.setItem(LS_SELECTED_MODEL, JSON.stringify(model))
+    localStorage.setItem(LS_SELECTED_MODEL, model)
   }
   function getModelFromLS(): string | null {
     if (typeof window === "undefined") return null
-    const model = localStorage.getItem(LS_SELECTED_MODEL)
-    return model || null
+    const result = localStorage.getItem(LS_SELECTED_MODEL)
+    return result
   }
   return {
     getConversationsFromLS,
