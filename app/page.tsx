@@ -6,12 +6,17 @@ import { toast } from "sonner"
 
 import { Conversation, Message } from "@/types/conversation"
 import { postChatMessages } from "@/lib/utils/fetch-utils"
-import { createThinkStripper, parseFireworksSSEChunk } from "@/lib/utils/utils"
+import {
+  createThinkExtractor,
+  createThinkStripper,
+  parseFireworksSSEChunk,
+} from "@/lib/utils/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { ChatMessages } from "@/components/chat/ChatMessages"
 
 const stripThinkTags = createThinkStripper()
+const extractThinkContent = createThinkExtractor()
 
 export default function Page() {
   const {
@@ -125,6 +130,7 @@ export default function Page() {
       }
       const reader = res.data.getReader()
       let assistantMessage = ""
+      let thinkMessage = ""
       let buffer = ""
       let done = false
       let receivedAny = false
@@ -148,7 +154,9 @@ export default function Page() {
               firstTokenReceived = true
             }
             const clean = stripThinkTags(parsed)
+            const thinkContent = extractThinkContent(parsed)
             assistantMessage += clean
+            thinkMessage += thinkContent // Keep only the text inside think tags
             totalTokens += clean.length // crude token count, can be improved
             setMessages((msgs) => [
               ...msgs.filter((m) => m.id !== String(assistantId)),
@@ -156,6 +164,7 @@ export default function Page() {
                 id: String(assistantId),
                 role: "assistant",
                 content: assistantMessage,
+                thinkMessage: thinkMessage,
                 // stats will be added after streaming is done
                 ...(msgs.find((m) => m.id === String(assistantId))?.stats
                   ? {
@@ -179,7 +188,9 @@ export default function Page() {
             firstTokenReceived = true
           }
           const clean = stripThinkTags(parsed)
-          assistantMessage += parsed
+          const thinkContent = extractThinkContent(parsed)
+          assistantMessage += clean
+          thinkMessage += thinkContent // Keep only the text inside think tags
           totalTokens += clean.length
         }
       }
@@ -199,6 +210,7 @@ export default function Page() {
               ? {
                   ...m,
                   content: assistantMessage, // Update with final content
+                  thinkMessage: thinkMessage, // Update with final think content
                   stats: {
                     responseTime,
                     timeToFirstToken,

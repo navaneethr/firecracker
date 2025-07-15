@@ -21,7 +21,10 @@ export function ModelSelect({
   return (
     <div className="w-full flex flex-col gap-1 text-left">
       {loading || models.length === 0 ? (
-        <Skeleton className="w-full h-10 rounded-md" />
+        <Skeleton
+          className="w-full h-10 rounded-xl"
+          style={{ borderRadius: "0.75rem" }}
+        />
       ) : (
         <Select value={value} onValueChange={onChange}>
           <SelectTrigger className="w-full text-left">

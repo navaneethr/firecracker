@@ -86,3 +86,54 @@ export function createThinkStripper() {
     return output
   }
 }
+
+export function createThinkExtractor() {
+  let inThink = false
+  let buffer = ""
+
+  return function extractThink(chunk: string): string {
+    buffer += chunk
+    let thinkContent = ""
+    let i = 0
+
+    while (i < buffer.length) {
+      if (!inThink) {
+        // Find the next <think> tag
+        const openTag = buffer.indexOf("<think", i)
+        if (openTag === -1) {
+          buffer = ""
+          break
+        }
+
+        // Try to find the end of the opening tag
+        const tagEnd = buffer.indexOf(">", openTag)
+        if (tagEnd === -1) {
+          // Not enough data yet, wait for more
+          buffer = buffer.slice(openTag)
+          return thinkContent
+        }
+
+        const isSelfClosing = buffer[tagEnd - 1] === "/"
+        inThink = !isSelfClosing
+
+        i = tagEnd + 1
+      } else {
+        const closeTag = buffer.indexOf("</think>", i)
+        if (closeTag === -1) {
+          // Extract what we have so far inside <think>
+          thinkContent += buffer.slice(i)
+          buffer = buffer.slice(i)
+          return thinkContent
+        }
+
+        // Extract content between <think> and </think>
+        thinkContent += buffer.slice(i, closeTag)
+        i = closeTag + "</think>".length
+        inThink = false
+      }
+    }
+
+    buffer = ""
+    return thinkContent
+  }
+}

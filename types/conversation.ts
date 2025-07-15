@@ -9,6 +9,7 @@ export interface Message {
   id: string
   role: "user" | "assistant"
   content: string
+  thinkMessage?: string // Full text including think tags for assistant messages
   stats?: {
     responseTime: number
     timeToFirstToken: number
@@ -17,6 +18,7 @@ export interface Message {
 }
 export interface AssistantMessageWithCopyProps {
   content: string
+  thinkMessage?: string
   stats?: {
     responseTime: number
     timeToFirstToken: number

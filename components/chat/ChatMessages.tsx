@@ -24,18 +24,20 @@ export function ChatMessages({ messages, loading = false }: ChatMessagesProps) {
           }`}
         >
           {msg.role === "user" ? (
-            <div className="rounded-lg px-4 py-2 max-w-[70%] text-sm bg-primary text-primary-foreground whitespace-pre-line shadow-sm">
+            <div
+              className="rounded-xl px-4 py-2 max-w-[70%] text-sm bg-primary text-primary-foreground whitespace-pre-line shadow-sm"
+              style={{ borderRadius: "0.75rem" }}
+            >
               {msg.content}
             </div>
           ) : (
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <AssistantMessageWithCopy
-                  content={msg.content}
-                  stats={msg.stats}
-                  loading={loading && i === messages.length - 1}
-                />
-              </div>
+            <div className="flex flex-col items-start max-w-[80%]">
+              <AssistantMessageWithCopy
+                content={msg.content}
+                thinkMessage={msg.thinkMessage}
+                stats={msg.stats}
+                loading={loading && i === messages.length - 1}
+              />
             </div>
           )}
         </div>
