@@ -4,6 +4,7 @@ import * as React from "react"
 import { useGlobalContext } from "@/context/GlobalProvider"
 import { FilePlus2Icon, Trash2Icon } from "lucide-react"
 
+import { Conversation } from "@/types/conversation"
 import { Icons } from "@/components/icons"
 import { ConversationSelect } from "@/components/navbar/ConversationSelect"
 import { ModelSelect } from "@/components/navbar/ModelSelect"
@@ -20,31 +21,6 @@ export function Navbar() {
     setConversations,
   } = useGlobalContext()
 
-  // Update conversation title in ConversationSelect to first prompt input as soon as available
-  React.useEffect(() => {
-    if (!selectedConversationId) return
-    const conv = conversations.find((c) => c.id === selectedConversationId)
-    if (!conv) return
-    // Only update if title is default and first user message exists
-    if (
-      conv.title === "New Chat" &&
-      conv.messages &&
-      conv.messages.length > 0
-    ) {
-      const firstUserMsg = conv.messages.find((m) => m.role === "user")
-      if (
-        firstUserMsg &&
-        firstUserMsg.content &&
-        firstUserMsg.content !== "New Chat"
-      ) {
-        const newTitle = firstUserMsg.content.slice(0, 40)
-        setConversations((prev) =>
-          prev.map((c) => (c.id === conv.id ? { ...c, title: newTitle } : c))
-        )
-      }
-    }
-  }, [conversations, selectedConversationId, setConversations])
-
   // Handler to update selected conversation
   const handleConversationChange = (id: string) => {
     setSelectedConversationId(id)
@@ -53,7 +29,22 @@ export function Navbar() {
   // Handler to update selected model and persist to localStorage
   const handleModelChange = (value: string) => {
     setSelectedModel(value)
-    if (value) localStorage.setItem("selectedModel", value)
+
+    // Save conversation with the new model
+    if (selectedConversationId) {
+      const found = conversations.find((c) => c.id === selectedConversationId)
+      if (found) {
+        const updated: Conversation = {
+          ...found,
+          model: value, // Use the new model value directly
+          updatedAt: Date.now(),
+        }
+
+        setConversations((prev) =>
+          prev.map((c) => (c.id === selectedConversationId ? updated : c))
+        )
+      }
+    }
   }
 
   // Handler to add a new conversation
@@ -84,7 +75,7 @@ export function Navbar() {
       return filtered
     })
   }
-
+  console.log("selectedModel:", selectedModel)
   return (
     <header className="bg-background sticky top-0 z-40 w-full border-b overflow-x-auto scrollbar-thin scrollbar-thumb-muted/60 scrollbar-track-transparent">
       <div className="container flex h-14 items-center justify-between min-w-[360px]">

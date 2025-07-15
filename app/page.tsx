@@ -27,6 +27,33 @@ export default function Page() {
   const [messages, setMessages] = React.useState<Message[]>([])
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
+  const saveConversation = (
+    conversationId: string,
+    messagesData: Message[]
+  ) => {
+    const title =
+      messagesData.find((m) => m.role === "user")?.content?.slice(0, 40) ||
+      "New Chat"
+    const updatedConversation: Conversation = {
+      id: conversationId,
+      title,
+      messages: messagesData,
+      model: selectedModel,
+      updatedAt: Date.now(),
+    }
+
+    setConversations((prevConversations) => {
+      const idx = prevConversations.findIndex((c) => c.id === conversationId)
+      if (idx > -1) {
+        const updated = [...prevConversations]
+        updated[idx] = updatedConversation
+        return updated
+      } else {
+        return [...prevConversations, updatedConversation]
+      }
+    })
+  }
+
   // Load last conversation on mount
   React.useEffect(() => {
     if (typeof window === "undefined") return
@@ -41,40 +68,6 @@ export default function Page() {
       setMessages(found.messages)
     }
   }, [selectedConversationId])
-
-  // Save conversation to localStorage on messages/model change
-  React.useEffect(() => {
-    if (!selectedConversationId) return
-    const idx = conversations.findIndex((c) => c.id === selectedConversationId)
-    const title =
-      messages.find((m) => m.role === "user")?.content?.slice(0, 40) ||
-      "New Chat"
-    const updated: Conversation = {
-      id: selectedConversationId,
-      title,
-      messages,
-      model: selectedModel,
-      updatedAt: Date.now(),
-    }
-    if (idx > -1) {
-      conversations[idx] = updated
-    } else {
-      conversations.push(updated)
-    }
-    setConversations(conversations)
-    setSelectedConversationId(selectedConversationId)
-  }, [messages, selectedModel, selectedConversationId])
-
-  React.useEffect(() => {
-    // If conversations change, reset messages if no conversation is selected
-    if (!selectedConversationId && conversations.length > 0) {
-      const lastConv = conversations[conversations.length - 1]
-      setSelectedConversationId(lastConv.id)
-      setMessages(lastConv.messages)
-    } else if (!selectedConversationId) {
-      setMessages([]) // Clear messages if no conversation found
-    }
-  }, [conversations, selectedConversationId])
 
   const handleSend = async (input: string) => {
     if (!input.trim()) return
@@ -103,6 +96,8 @@ export default function Page() {
         { id: String(messages.length + 1), role: "user", content: input },
       ]
       setMessages(newMessages)
+      // Save conversation after adding user message
+      saveConversation(convId, newMessages)
     }
 
     const abortController = new AbortController()
@@ -139,8 +134,12 @@ export default function Page() {
         done = doneReading
         if (value) {
           buffer += new TextDecoder().decode(value)
+          // // Received data: "data: {chunk1}\ndata: {chunk2}\ndata: {incomplete"
+          // lines = ["data: {chunk1}", "data: {chunk2}", "data: {incomplete"]
           const lines = buffer.split("\n")
-          buffer = lines.pop() ?? ""
+          buffer = lines.pop() || ""
+          // buffer = "data: {incomplete"
+          // lines = ["data: {chunk1}", "data: {chunk2}"]
           const parsed = parseFireworksSSEChunk(lines.join("\n"))
           if (parsed) {
             receivedAny = true
@@ -169,6 +168,8 @@ export default function Page() {
           }
         }
       }
+
+      // Process final buffer and calculate performance metrics in one call
       if (buffer) {
         const parsed = parseFireworksSSEChunk(buffer)
         if (parsed) {
@@ -180,22 +181,9 @@ export default function Page() {
           const clean = stripThinkTags(parsed)
           assistantMessage += parsed
           totalTokens += clean.length
-          setMessages((msgs) => [
-            ...msgs.filter((m) => m.id !== String(assistantId)),
-            {
-              id: String(assistantId),
-              role: "assistant",
-              content: assistantMessage,
-              ...(msgs.find((m) => m.id === String(assistantId))?.stats
-                ? {
-                    stats: msgs.find((m) => m.id === String(assistantId))!
-                      .stats,
-                  }
-                : {}),
-            },
-          ])
         }
       }
+
       endTime = performance.now()
       if (receivedAny) {
         const responseTime = endTime - startTime
@@ -204,11 +192,13 @@ export default function Page() {
           : 0
         const tokensPerSecond =
           responseTime > 0 ? totalTokens / (responseTime / 1000) : 0
-        setMessages((msgs) =>
-          msgs.map((m) =>
+
+        setMessages((msgs) => {
+          const finalMessages = msgs.map((m) =>
             m.id === String(assistantId)
               ? {
                   ...m,
+                  content: assistantMessage, // Update with final content
                   stats: {
                     responseTime,
                     timeToFirstToken,
@@ -217,7 +207,12 @@ export default function Page() {
                 }
               : m
           )
-        )
+
+          // Save conversation with the complete message including stats
+          saveConversation(convId!, finalMessages)
+
+          return finalMessages
+        })
       }
       if (!receivedAny) {
         toast.error(
@@ -248,7 +243,9 @@ export default function Page() {
   return (
     <main className="flex-1 flex flex-col relative items-center">
       <div className="flex-1 flex flex-col w-full max-w-5xl px-4 sm:px-8 md:px-12 lg:mx-auto gap-4 min-h-0 pt-4 pb-40">
-        <ChatMessages messages={messages} loading={loading} />
+        {selectedConversationId && (
+          <ChatMessages messages={messages} loading={loading} />
+        )}
       </div>
       <div className="w-full flex flex-col items-center fixed bottom-0 left-0 z-20 bg-background pb-4">
         <div className="w-full max-w-5xl mb-2 px-4 sm:px-8 md:px-12">

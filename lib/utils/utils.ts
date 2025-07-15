@@ -32,18 +32,21 @@ export function cn(...inputs: ClassValue[]) {
 
 export function createThinkStripper() {
   let inThink = false
-  let shownThinking = false
   let buffer = ""
+
+  // Example chunk 1: "Hello <think>reasoning</think> world"
+  // Result: "Hello  world" (thinking content removed)
 
   return function stripChunk(chunk: string): string {
     buffer += chunk
     let output = ""
     let i = 0
-
+    // Process the buffer until we reach the end
     while (i < buffer.length) {
       if (!inThink) {
+        // Find the next <think> tag
         const openTag = buffer.indexOf("<think", i)
-
+        // If no more <think> tags, add the rest of the buffer
         if (openTag === -1) {
           output += buffer.slice(i)
           buffer = ""
@@ -59,12 +62,6 @@ export function createThinkStripper() {
           // Not enough data yet, wait for more
           buffer = buffer.slice(openTag)
           return output
-        }
-
-        // Show Thinking ...
-        if (!shownThinking) {
-          output += ""
-          shownThinking = true
         }
 
         const isSelfClosing = buffer[tagEnd - 1] === "/"
